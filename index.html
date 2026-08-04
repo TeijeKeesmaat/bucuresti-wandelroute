@@ -228,7 +228,7 @@
     <div class="plaat-groot">
       <p class="sector">Rondwandeling · start en finish</p>
       <h1>Calea Victoriei 25</h1>
-      <p class="onder">± 6 KM · ± 85 MIN LOPEN · 9 STOPS · 12 DINGEN ONDERWEG</p>
+      <p class="onder">6,0 KM · ± 80 MIN LOPEN · 9 STOPS · 12 DINGEN ONDERWEG</p>
     </div>
     <p class="intro">Een rondje dat begint en eindigt op je eigen stoep. Eerst het oude centrum, dan west naar het Parlementspaleis, via Cismigiu terug omhoog naar het Ateneum, en langs Calea Victoriei weer naar beneden. Tik een punt op de kaart aan voor de uitleg.</p>
   </header>
@@ -471,7 +471,10 @@
 
   /* route: eerst rechte lijnen, daarna de echte wandellijn als de router antwoordt */
 
-  var volgorde = [START].concat(PUNTEN).concat([START]);
+  /* De lijn loopt langs de negen stops, precies zoals de Google Maps-route.
+     De punten onderweg staan als losse markers naast die lijn, want ze in de
+     route opnemen zou je laten zigzaggen. */
+  var volgorde = [START].concat(stops).concat([START]);
   var lijn = L.polyline(volgorde.map(function (p) { return [p.lat, p.lng]; }), {
     color: "#16386B", weight: 4, opacity: 0.75, dashArray: "6 6"
   }).addTo(kaart);
