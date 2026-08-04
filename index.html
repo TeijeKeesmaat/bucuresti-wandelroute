@@ -75,9 +75,9 @@
   }
   .kaartblok { margin: 20px 0 0; }
 
-  .lagen { display: flex; gap: 0; margin: 0; }
+  .lagen { display: flex; flex-wrap: wrap; gap: 0; margin: 0; }
   .lagen button {
-    flex: 1 1 0;
+    flex: 1 1 45%;
     font-family: var(--sans);
     font-size: 0.74rem; font-weight: 600; letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -273,6 +273,7 @@
     <div class="lagen">
       <button type="button" id="laagKaart" aria-pressed="true">Straatkaart</button>
       <button type="button" id="laagSat" aria-pressed="false">Satelliet</button>
+      <button type="button" id="laagOsm" aria-pressed="false">OSM-punten</button>
       <button type="button" id="laagPas">Hele route in beeld</button>
     </div>
     <div class="knoppen">
@@ -304,7 +305,7 @@
 (function () {
   "use strict";
 
-  var START = { type: "start", naam: "Calea Victoriei 25", adres: "Startpunt", lat: 44.43433, lng: 26.09800,
+  var START = { type: "start", naam: "Calea Victoriei 25", adres: "Startpunt", lat: 44.43429, lng: 26.09811,
     q: "Calea Victoriei 25, 030167 Bucuresti",
     foto: "fotos/calea-victoriei-25.jpg", credit: "Mihai Petre (CC BY-SA 3.0 ro)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AHotel_Continental_-_Calea_Victoriei.jpg",
     wat: "Je eigen voordeur, midden op de straat die Boekarest zijn bijnaam Klein Parijs bezorgde. Alles ten zuiden van je is het oude handelscentrum, alles ten noorden de negentiende-eeuwse pronkstraat met paleizen, hotels en het Ateneum.",
@@ -313,147 +314,147 @@
 
   var PUNTEN = [
     { type: "stop", nr: 1, naam: "Pasajul Macca-Villacrosse", adres: "Calea Victoriei / Str. Eugeniu Carada",
-      min: 2, lat: 44.43311, lng: 26.09870, q: "Pasajul Macca-Villacrosse, Bucuresti",
+      min: 2, lat: 44.43306, lng: 26.09873, q: "Pasajul Macca-Villacrosse, Bucuresti",
       foto: "fotos/pasajul-macca-villacrosse.jpg", credit: "Octav Vladu (CC BY-SA 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AMacca-Villacrosse.jpg",
       wat: "Een overdekte winkelpassage uit 1891, gebouwd toen dit soort glazen galerijen in heel Europa in de mode waren. Het dak is van geel glas, waardoor het licht binnen een vreemde honingkleur krijgt en iedereen er op foto's uitziet alsof het altijd namiddag is.",
       weetje: "De passage is Y-vormig, met een gedeelde ingang aan Calea Victoriei en twee aparte uitgangen, want de twee eigenaren Macca en Villacrosse konden het niet eens worden. Tot 2012 zat de effectenbeurs van Boekarest hier om de hoek.",
       praktisch: "Je loopt er in twee minuten doorheen en het is de logische doorsteek naar Lipscani. Even omhoog kijken is het hele punt." },
 
     { type: "tussen", naam: "Palatul CEC", adres: "Calea Victoriei 13",
-      lat: 44.43128, lng: 26.09650, q: "Palatul CEC, Calea Victoriei 13, Bucuresti",
+      lat: 44.43203, lng: 26.09646, q: "Palatul CEC, Calea Victoriei 13, Bucuresti",
       foto: "fotos/palatul-cec.jpg", credit: "Diego Delso (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3APalacio_CEC%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_91-93_HDR.jpg",
       wat: "Het spaarbankpaleis uit 1900, ontworpen door de Franse architect Paul Gottereau, met een glazen koepel boven de centrale hal. Het staat recht tegenover het geschiedenismuseum, dus je hebt hier in een klap de twee zwaarste gevels van de straat.",
       weetje: "Op deze plek stond eerder het Sfantul Ioan cel Mare-klooster, dat ervoor gesloopt is. Het gebouw is nog altijd van dezelfde spaarbank, die er inmiddels vooral prestige aan ontleent.",
       praktisch: "Buitenkant. Binnen kom je alleen bij evenementen, dus reken op een blik vanaf de stoep." },
 
     { type: "tussen", naam: "Muzeul National de Istorie", adres: "Calea Victoriei 12",
-      lat: 44.43064, lng: 26.09590, q: "Muzeul National de Istorie a Romaniei, Bucuresti",
+      lat: 44.43149, lng: 26.09721, q: "Muzeul National de Istorie a Romaniei, Bucuresti",
       foto: "fotos/muzeul-national-de-istorie.jpg", credit: "Diego Delso (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AMuseo_Nacional_de_Historia_de_Ruman%C3%ADa%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_63.jpg",
       wat: "Het oude Postpaleis uit 1900, met een rij zware zuilen aan de straat, nu het nationaal geschiedenismuseum. Binnen hangt onder meer een gipsen kopie op ware grootte van de zuil van Trajanus uit Rome, uitgerold over de lengte van een zaal.",
       weetje: "In de schatkamer ligt de gouden schat van Pietroasele, in Roemenie bekend als Closca cu puii de aur, de klokhen met haar gouden kuikens. Hij werd in 1837 gevonden door twee steenhouwers en is daarna nog gestolen en teruggevonden ook.",
       praktisch: "Als je een museum doet op deze route, doe dan deze. Reken op minstens een uur." },
 
     { type: "stop", nr: 2, naam: "Carturesti Carusel", adres: "Strada Lipscani 55",
-      min: 3, lat: 44.43179, lng: 26.09772, q: "Carturesti Carusel, Strada Lipscani 55, Bucuresti",
+      min: 3, lat: 44.43189, lng: 26.10158, q: "Carturesti Carusel, Strada Lipscani 55, Bucuresti",
       foto: "fotos/carturesti-carusel.jpg", credit: "Mihai Petre (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ALibraria_Carturesti_Carusel_-_Interior_ziua.jpg",
       wat: "Een boekhandel over zes spierwitte verdiepingen, met gietijzeren zuilen en een trap die als een wenteling door het midden loopt. Op de bovenste laag zit een klein cafe, in de kelder een ruimte voor exposities.",
       weetje: "Het pand was de bank van de Grieks-Roemeense familie Chrissoveloni, werd onder het communisme een staatswarenhuis en stond daarna twintig jaar leeg te vervallen. De restauratie in 2015 legde de originele constructie weer bloot.",
       praktisch: "Naar binnen, ook zonder boek te kopen. Loop helemaal naar boven en kijk vanaf de bovenste galerij naar beneden." },
 
     { type: "tussen", naam: "Strada Lipscani", adres: "Oude centrum",
-      lat: 44.43155, lng: 26.09920, q: "Strada Lipscani, Bucuresti",
+      lat: 44.43194, lng: 26.10039, q: "Strada Lipscani, Bucuresti",
       foto: "fotos/strada-lipscani.jpg", credit: "Chainwit. (CC BY 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AStrada_Lipscani_18-20_Bucure%C8%99ti_%282023%29_-_img_04.jpg",
       wat: "De hoofdader van het oude handelscentrum, eeuwenlang de straat waar je alles kon kopen wat de stad te bieden had. Nu staat hij vol terrassen, kroegen en souvenirwinkels, met de oude gevels er nog boven.",
       weetje: "De naam komt van de lipscani, de kooplui die hun waar op de jaarmarkt van Leipzig haalden, in het Roemeens Lipsca. De zijstraten heten nog steeds naar de gilden die er zaten, zoals Blanari voor de bontwerkers en Selari voor de zadelmakers.",
       praktisch: "Doorlopen tijdens de wandeling, terugkomen als het donker is. Overdag is het er rustig en rommelig, s avonds is het de uitgaansbuurt." },
 
     { type: "tussen", naam: "Hanul cu Tei", adres: "Strada Lipscani 63",
-      lat: 44.43168, lng: 26.10035, q: "Hanul cu Tei, Bucuresti",
+      lat: 44.43214, lng: 26.10216, q: "Hanul cu Tei, Bucuresti",
       foto: "fotos/hanul-cu-tei.jpg", credit: "Sabin Iacob from Bucureşti, Romania (CC BY-SA 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AAnsamblul_de_arhitectur%C4%83_%22Str._Hanul_cu_Tei%22_-_ie%C8%99irea_Lipscani_%282%29.jpg",
       wat: "Een smalle overdekte doorgang uit 1833 tussen Lipscani en Blanari, met aan beide kanten galerijen vol kunst- en antiekhandels. Het is een handelshof in de oude stijl: winkels beneden, opslag en logies boven.",
       weetje: "Het is de best bewaarde koopmanspassage van de stad en staat er nog vrijwel zoals hij gebouwd is, terwijl de meeste andere hanuri gesloopt zijn of afbrandden. De naam betekent herberg met de lindeboom.",
       praktisch: "Kost je vijf minuten en is een rustige onderbreking van de drukte op Lipscani." },
 
     { type: "stop", nr: 3, naam: "Manastirea Stavropoleos", adres: "Strada Stavropoleos 4",
-      min: 3, lat: 44.43126, lng: 26.09828, q: "Manastirea Stavropoleos, Strada Stavropoleos 4, Bucuresti",
+      min: 3, lat: 44.43180, lng: 26.09871, q: "Manastirea Stavropoleos, Strada Stavropoleos 4, Bucuresti",
       foto: "fotos/manastirea-stavropoleos.jpg", credit: "Neoclassicism Enthusiast (Public domain)", creditUrl: "https://commons.wikimedia.org/wiki/File%3A4%2C_Strada_Stavropoleos%2C_Bucharest_%28Romania%29.jpg",
       wat: "Een klein kloosterkerkje uit 1724 in Brancovenesc-stijl, met fijn steenwerk rond de ingang en een houten iconostase binnen. Naast de kerk ligt een binnenhof met een omlopende galerij, waar het altijd stiller is dan de straat twintig meter verderop.",
       weetje: "In die binnenhof liggen brokstukken, grafstenen en zuilfragmenten van kerken die in de jaren tachtig zijn gesloopt voor de bouwdrift van Ceausescu. Het klooster bewaart daarnaast een van de belangrijkste verzamelingen Byzantijnse muziekhandschriften van het land.",
       praktisch: "Zeker naar binnen, het is het rustigste plekje van de hele route. Vijf tot tien minuten is genoeg." },
 
     { type: "tussen", naam: "Biserica Curtea Veche", adres: "Strada Franceza 33",
-      lat: 44.43036, lng: 26.10160, q: "Biserica Curtea Veche, Bucuresti",
+      lat: 44.43010, lng: 26.10206, q: "Biserica Curtea Veche, Bucuresti",
       foto: "fotos/biserica-curtea-veche.jpg", credit: "Chainwit. (CC BY 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ABiserica_Curtea_Veche_Bucure%C8%99ti_%282023%29_-_img_02.jpg",
       wat: "De oudste nog staande kerk van Boekarest, gebouwd rond 1559 door vorst Mircea Ciobanul, pal naast het toenmalige hof. Van buiten is het een gedrongen baksteenbouw die je makkelijk voorbijloopt.",
       weetje: "Vorsten van Walachije werden hier eeuwenlang gekroond, letterlijk om de hoek bij hun eigen paleis. De kerk heeft branden, aardbevingen en de sloopplannen van de jaren tachtig overleefd.",
       praktisch: "Klein en vrij toegankelijk. Kost je hooguit vijf minuten en ligt precies op de route naar Curtea Veche." },
 
     { type: "stop", nr: 4, naam: "Curtea Veche", adres: "Strada Franceza 25",
-      min: 5, lat: 44.43006, lng: 26.10128, q: "Curtea Veche, Strada Franceza 25, Bucuresti",
+      min: 5, lat: 44.43003, lng: 26.10128, q: "Curtea Veche, Strada Franceza 25, Bucuresti",
       foto: "fotos/curtea-veche.jpg", credit: "Nicubunu (CC BY-SA 3.0 ro)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ACurtea_Veche_1.jpg",
       wat: "De opgegraven resten van het vorstelijk hof van Walachije: muurwerk, kelderbogen en fundamenten, met een borstbeeld van Vlad Tepes erbij. Het is geen paleis meer maar een archeologisch terrein op straatniveau.",
       weetje: "In een oorkonde die hier is uitgevaardigd, gedateerd 20 september 1459, duikt de naam Boekarest voor het eerst op in een geschreven bron, ondertekend door Vlad Tepes zelf. Dat maakt dit stukje grond formeel het beginpunt van de stad.",
       praktisch: "Een kwartier is genoeg, tenzij je van archeologie houdt. Veel is van buiten al te zien." },
 
     { type: "stop", nr: 5, naam: "Hanu' lui Manuc", adres: "Strada Franceza 62-64",
-      min: 2, lat: 44.42972, lng: 26.10231, q: "Hanul lui Manuc, Strada Franceza 62-64, Bucuresti",
+      min: 2, lat: 44.42972, lng: 26.10235, q: "Hanul lui Manuc, Strada Franceza 62-64, Bucuresti",
       foto: "fotos/hanu-lui-manuc.jpg", credit: "Chainwit. (CC BY 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ABucharest_-_Hanul_lui_Manuc_%282023%29_-_img_03.jpg",
       wat: "De oudste bewaarde herberg van de stad, in 1808 gebouwd door de Armeense koopman Emanuel Marzaian, beter bekend als Manuc Bei. Rondom de binnenplaats loopt een dubbele houten galerij waar je zo de negentiende eeuw in stapt.",
       weetje: "In dit gebouw werd in 1812 het vredesverdrag van Boekarest uitonderhandeld, dat de Russisch-Turkse oorlog beeindigde en Bessarabie aan Rusland gaf. Manuc zelf speelde daarbij bemiddelaar, wat hem geen windeieren legde.",
       praktisch: "De binnenplaats is vrij toegankelijk en absoluut de moeite, ook als je er niets drinkt." },
 
     { type: "tussen", naam: "Piata Unirii", adres: "Kruispunt Unirii",
-      lat: 44.42700, lng: 26.10300, q: "Piata Unirii, Bucuresti",
+      lat: 44.42744, lng: 26.10254, q: "Piata Unirii, Bucuresti",
       foto: "fotos/piata-unirii.jpg", credit: "Cristian Adrian at English Wikipedia (CC BY-SA 3.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AOver_unirii_square_2.jpg",
       wat: "Een groot verkeersplein waar de lange fonteinenrij van Bulevardul Unirii begint, met de as die kaarsrecht op het Parlementspaleis afloopt. Hier zie je in een oogopslag wat de stadsvernieuwing van de jaren tachtig met het centrum heeft gedaan.",
       weetje: "De rivier de Dambovita loopt hier onder het plein door, in de jaren achtereenvolgens rechtgetrokken, overkluisd en weggewerkt. Wat vroeger een stadsrivier met markten was, is nu asfalt.",
       praktisch: "Doorsteek, geen bestemming. Loop aan de kant van de fonteinen, dat scheelt vier rijstroken." },
 
     { type: "tussen", naam: "Catedrala Patriarhala", adres: "Dealul Mitropoliei",
-      lat: 44.42470, lng: 26.09830, q: "Catedrala Patriarhala, Bucuresti",
+      lat: 44.42456, lng: 26.09795, q: "Catedrala Patriarhala, Bucuresti",
       foto: "fotos/catedrala-patriarhala.jpg", credit: "Chainwit. (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ACatedrala_Patriarhal%C4%83%2C_Bucure%C8%99ti_%282023%29_-_IMG_03.jpg",
       wat: "De patriarchale kathedraal uit 1658, boven op Dealul Mitropoliei, het enige heuveltje in de wijde omtrek. Naast de kerk staan de klokkentoren en het patriarchaal paleis, met uitzicht over Piata Unirii.",
       weetje: "Tot 1997 vergaderde het Roemeense parlement in het gebouw naast deze kerk, dus kerk en staat deelden hier letterlijk een adres. De kathedraal is het geestelijke centrum van de Roemeens-orthodoxe kerk.",
       praktisch: "Kleine omweg omhoog, tien minuten extra. De moeite waard voor het uitzicht en de stilte." },
 
     { type: "tussen", naam: "Bulevardul Unirii", adres: "As naar het paleis",
-      lat: 44.42660, lng: 26.09400, q: "Bulevardul Unirii, Bucuresti",
+      lat: 44.42698, lng: 26.09636, q: "Bulevardul Unirii, Bucuresti",
       foto: "fotos/bulevardul-unirii.jpg", credit: "Amy Keus (CC BY-SA 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AView_from_the_People%27s_Palace.jpg",
       wat: "De kaarsrechte parade-as met een lange rij fonteinen in het midden, die recht op het Parlementspaleis afloopt. Aan weerszijden staan de blokken appartementen die tegelijk met het paleis zijn neergezet.",
       weetje: "Hij is met opzet net iets breder en langer aangelegd dan de Champs-Elysees, dat was uitdrukkelijk de bedoeling. De wijk Uranus die hier stond is er compleet voor weggebulldozerd.",
       praktisch: "Twintig minuten rechtdoor lopen met het paleis steeds groter voor je. Dat effect is precies wat de ontwerpers wilden." },
 
     { type: "stop", nr: 6, naam: "Palatul Parlamentului", adres: "Strada Izvor 2-4",
-      min: 25, lat: 44.42750, lng: 26.08735, q: "Palatul Parlamentului, Strada Izvor 2-4, Bucuresti",
+      min: 25, lat: 44.42749, lng: 26.08741, q: "Palatul Parlamentului, Strada Izvor 2-4, Bucuresti",
       foto: "fotos/palatul-parlamentului.jpg", credit: "Nicolae Sfetcu (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3APalace_of_the_Parliament.jpg",
       wat: "Het paleis dat Ceausescu liet bouwen vanaf 1984, met ruim duizend zalen, twaalf verdiepingen en nog eens acht ondergrondse lagen. Het is het zwaarste gebouw ter wereld en werd gebouwd met vrijwel uitsluitend Roemeens marmer, hout en kristal.",
       weetje: "Voor de bouw ging een hele wijk tegen de vlakte: duizenden huizen, kerken en een ziekenhuis. Een paar kerken zijn op rails honderden meters verplaatst en achter nieuwe flats verstopt, zodat ze bleven bestaan maar niet meer te zien waren.",
       praktisch: "Naar binnen kan alleen met rondleiding en paspoort, vooraf reserveren. Anders is de blik vanaf Bulevardul Unirii ruim genoeg." },
 
     { type: "tussen", naam: "Catedrala Mantuirii Neamului", adres: "Naast het Parlementspaleis",
-      lat: 44.42780, lng: 26.08420, q: "Catedrala Mantuirii Neamului, Bucuresti",
+      lat: 44.42592, lng: 26.08229, q: "Catedrala Mantuirii Neamului, Bucuresti",
       foto: "fotos/catedrala-mantuirii-neamului.jpg", credit: "MIHAIL (CC BY 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ACatedrala_M%C3%A2ntuirii_Neamului_%28Aprilie_2025%29.jpg",
       wat: "De nieuwe nationale kathedraal, pal achter het parlementspaleis, nog altijd in afbouw maar al in gebruik. Van binnen zit een enorm mozaiekoppervlak, van buiten domineert de toren het hele terrein.",
       weetje: "Qua hoogte is het de grootste orthodoxe kerk ter wereld, en hij is bewust naast het communistische paleis gezet: de kerk die het laatste woord krijgt. De bouw loopt al sinds 2010 en is fel bediscussieerd om de kosten.",
       praktisch: "Twee minuten om, en het contrast met het paleis ernaast is het hele punt van de omweg." },
 
     { type: "stop", nr: 7, naam: "Gradina Cismigiu", adres: "Bulevardul Regina Elisabeta",
-      min: 22, lat: 44.43734, lng: 26.09108, q: "Gradina Cismigiu, Bucuresti",
+      min: 22, lat: 44.43722, lng: 26.09035, q: "Gradina Cismigiu, Bucuresti",
       foto: "fotos/gradina-cismigiu.jpg", credit: "Gabriel from Bucharest, Romania (CC BY 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ACi%C5%9Fmigiu_Gardens_%282438863237%29.jpg",
       wat: "Het oudste stadspark van Boekarest, vanaf 1847 aangelegd door de Duitse landschapsarchitect Carl Wilhelm Meyer rond een vijver. Oude platanen, een grot van kunstrots, bankjes en veel schaduw, precies wat je na een paar uur beton nodig hebt.",
       weetje: "De naam komt van de cismigiu, de Ottomaanse opzichter van de openbare waterfonteinen, die hier woonde. In het park staat het Rondul Roman, een cirkel met bustes van Roemeense schrijvers, en s winters ligt er een schaatsbaan op de vijver.",
       praktisch: "Vrij toegankelijk. Neem er een half uur voor, eventueel met een roeibootje op de vijver." },
 
     { type: "tussen", naam: "Biserica Cretulescu", adres: "Calea Victoriei 45",
-      lat: 44.43862, lng: 26.09585, q: "Biserica Cretulescu, Bucuresti",
+      lat: 44.43812, lng: 26.09665, q: "Biserica Cretulescu, Bucuresti",
       foto: "fotos/biserica-cretulescu.jpg", credit: "Diego Delso (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AIglesia_Kretzulescu%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_68.jpg",
       wat: "Een baksteenrode kerk uit 1722 in Brancovenesc-stijl, die zich klein en koppig tussen de grote gebouwen aan het Revolutieplein wringt. De voorhal heeft nog resten van oude fresco's.",
       weetje: "Hij stond in de jaren tachtig op de sloopnota en is op het laatste moment blijven staan. Bij de gevechten van december 1989 liep hij schade op, die je op de gevel nog kunt terugzien.",
       praktisch: "Ligt precies op je route en kost je vijf minuten. Even naar binnen als de deur openstaat." },
 
     { type: "tussen", naam: "Muzeul National de Arta", adres: "Calea Victoriei 49-53",
-      lat: 44.43925, lng: 26.09565, q: "Muzeul National de Arta al Romaniei, Bucuresti",
+      lat: 44.44007, lng: 26.09579, q: "Muzeul National de Arta al Romaniei, Bucuresti",
       foto: "fotos/muzeul-national-de-arta.jpg", credit: "Alexandru Panoiu from Bucharest, Romania (CC BY 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AThe_Royal_Palace_%28AP4K1357_1PS%29_%2829291577856%29.jpg",
       wat: "Het voormalige Koninklijk Paleis, nu het nationale kunstmuseum, met een Roemeense en een Europese vleugel. Hier woonden de koningen tot de monarchie in 1947 werd afgeschaft.",
       weetje: "Op de gevels rond dit plein zitten nog kogelgaten uit december 1989, gewoon op ooghoogte als je erop let. De universiteitsbibliotheek aan de overkant brandde toen uit en verloor honderdduizenden boeken.",
       praktisch: "Groot museum, dus alleen doen als je er de tijd voor neemt. Anders langslopen en naar de gevels kijken." },
 
     { type: "stop", nr: 8, naam: "Ateneul Roman", adres: "Strada Benjamin Franklin 1-3",
-      min: 12, lat: 44.44133, lng: 26.09732, q: "Ateneul Roman, Strada Benjamin Franklin 1-3, Bucuresti",
+      min: 12, lat: 44.44137, lng: 26.09736, q: "Ateneul Roman, Strada Benjamin Franklin 1-3, Bucuresti",
       foto: "fotos/ateneul-roman.jpg", credit: "Diego Delso (CC BY-SA 4.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3AAteneo_Rumano%2C_Bucarest%2C_Ruman%C3%ADa%2C_2016-05-29%2C_DD_73.jpg",
       wat: "De concertzaal van Boekarest, in 1888 geopend, een ronde koepel op een rij Ionische zuilen met een klein park ervoor. Het is de thuisbasis van de George Enescu-filharmonie en het mooiste gebouw van deze wandeling.",
       weetje: "Het geld was halverwege op, waarna een publieke inzameling volgde onder de leus Dati un leu pentru Ateneu, geef een leu voor het Ateneum. Binnen loopt een rondlopend fresco van 75 meter langs de zaal, met de Roemeense geschiedenis in twaalf taferelen.",
       praktisch: "Als de deuren open zijn, zeker naar binnen voor de fresco. Anders is de gevel vanaf het parkje al de moeite." },
 
     { type: "stop", nr: 9, naam: "Piata Revolutiei", adres: "Calea Victoriei",
-      min: 2, lat: 44.43917, lng: 26.09769, q: "Piata Revolutiei, Bucuresti",
+      min: 2, lat: 44.43868, lng: 26.09749, q: "Piata Revolutiei, Bucuresti",
       foto: "fotos/piata-revolutiei.jpg", credit: "Alexandru Panoiu from Bucharest, Romania (CC BY 2.0)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ARevolution_Square_%28AP4K1406-1PSP%29_%2829213730282%29.jpg",
       wat: "Het plein waar Ceausescu op 21 december 1989 zijn laatste toespraak hield vanaf het balkon van het Centraal Comite, en waar het gejoel begon dat binnen drie dagen zijn regime kostte. De volgende dag vluchtte hij per helikopter van het dak.",
       weetje: "Het spitse monument midden op het plein, officieel het Monument van de Wedergeboorte, wordt door Boekaresters consequent de aardappel op een stokje genoemd. Aan de rand staan gedenkplaten met de namen van de doden van december 1989.",
       praktisch: "Buitenstop. Neem tien minuten om de platen te lezen en het balkon aan te wijzen, dat maakt het verschil." },
 
     { type: "tussen", naam: "Casa Capsa", adres: "Calea Victoriei 36",
-      lat: 44.43700, lng: 26.09610, q: "Casa Capsa, Calea Victoriei 36, Bucuresti",
+      lat: 44.43552, lng: 26.09841, q: "Casa Capsa, Calea Victoriei 36, Bucuresti",
       foto: "fotos/casa-capsa.jpg", credit: "Mihai Petre (CC BY-SA 3.0 ro)", creditUrl: "https://commons.wikimedia.org/wiki/File%3ACasa_Cap%C8%99a.jpg",
       wat: "Cafe, banketbakkerij, restaurant en hotel in een, geopend in 1852 door de gebroeders Capsa. Een eeuw lang was dit de plek waar schrijvers, politici en journalisten van Boekarest elkaar troffen.",
       weetje: "De vaste grap was dat nieuws pas nieuws was als het bij Capsa besproken was. De zaak maakte ook eigen ijs en taart, en had de reputatie de Parijse standaard naar Roemenie te hebben gehaald.",
@@ -582,6 +583,114 @@
 
   document.getElementById("laagPas").addEventListener("click", function () {
     kaart.fitBounds(lijn.getBounds(), { padding: [28, 28] });
+  });
+
+  /* ---------- punten uit OpenStreetMap ----------
+     Wat er verder nog langs de route ligt: cafes, terrassen, toiletten,
+     drinkwater, musea en monumenten. Wordt pas opgehaald als je erom vraagt,
+     want het is een flinke query bij Overpass. */
+
+  var osmLaag = L.layerGroup();
+  var osmStatus = "leeg";
+  var knopOsm = document.getElementById("laagOsm");
+
+  var SOORTEN = {
+    cafe: ["Cafe", "eten"], restaurant: ["Restaurant", "eten"],
+    bar: ["Bar", "eten"], pub: ["Kroeg", "eten"], ice_cream: ["IJs", "eten"],
+    drinking_water: ["Drinkwater", "voorziening"], toilets: ["Toilet", "voorziening"],
+    pharmacy: ["Apotheek", "voorziening"], atm: ["Geldautomaat", "voorziening"],
+    museum: ["Museum", "zien"], artwork: ["Kunstwerk", "zien"],
+    viewpoint: ["Uitzichtpunt", "zien"], attraction: ["Bezienswaardigheid", "zien"],
+    gallery: ["Galerie", "zien"]
+  };
+  var KLEUR = { eten: "#B4621C", voorziening: "#6E7280", zien: "#16386B" };
+
+  function duid(t) {
+    var s = SOORTEN[t.amenity] || SOORTEN[t.tourism];
+    if (s) { return s; }
+    if (t.historic) { return ["Historisch", "zien"]; }
+    return null;
+  }
+
+  function haalOsm() {
+    var b = lijn.getBounds().pad(0.05);
+    var bb = [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()]
+      .map(function (x) { return x.toFixed(5); }).join(",");
+
+    var q = "[out:json][timeout:40];("
+      + 'node["amenity"~"^(cafe|restaurant|bar|pub|ice_cream|drinking_water|toilets|pharmacy)$"](' + bb + ");"
+      + 'node["tourism"~"^(museum|artwork|viewpoint|attraction|gallery)$"](' + bb + ");"
+      + 'node["historic"](' + bb + ");"
+      + ");out body 600;";
+
+    osmStatus = "bezig";
+    knopOsm.textContent = "OSM laden";
+
+    return fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: q })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (d) {
+        var aantal = 0;
+        d.elements.forEach(function (e) {
+          var t = e.tags || {};
+          var s = duid(t);
+          if (!s) { return; }
+          var naam = t.name || t["name:ro"];
+          /* naamloze cafes en musea zeggen niets; naamloze toiletten en
+             drinkwaterpunten juist wel */
+          if (!naam && s[1] !== "voorziening") { return; }
+
+          var cm = L.circleMarker([e.lat, e.lon], {
+            radius: 5, weight: 2, color: KLEUR[s[1]],
+            fillColor: "#EDEBE3", fillOpacity: 0.9
+          });
+
+          var box = document.createElement("div");
+          var h = document.createElement("p");
+          h.className = "pop-naam"; h.textContent = naam || s[0];
+          box.appendChild(h);
+          var m2 = document.createElement("p");
+          m2.className = "pop-meta";
+          m2.textContent = s[0].toUpperCase() + " · UIT OPENSTREETMAP";
+          box.appendChild(m2);
+          if (t["addr:street"]) {
+            var ad = document.createElement("p");
+            ad.className = "pop-wat";
+            ad.textContent = t["addr:street"] + (t["addr:housenumber"] ? " " + t["addr:housenumber"] : "");
+            box.appendChild(ad);
+          }
+          var lk = document.createElement("a");
+          lk.className = "pop-link";
+          lk.href = "https://www.google.com/maps/search/?api=1&query=" + e.lat + "," + e.lon;
+          lk.target = "_blank"; lk.rel = "noopener";
+          lk.textContent = "Breng me hierheen";
+          box.appendChild(lk);
+
+          cm.bindPopup(box, { maxWidth: 240 });
+          osmLaag.addLayer(cm);
+          aantal++;
+        });
+        osmStatus = "klaar";
+        knopOsm.textContent = "OSM-punten (" + aantal + ")";
+      })
+      .catch(function () {
+        osmStatus = "leeg";
+        knopOsm.textContent = "OSM lukte niet";
+        knopOsm.setAttribute("aria-pressed", "false");
+      });
+  }
+
+  knopOsm.addEventListener("click", function () {
+    if (osmStatus === "bezig") { return; }
+    if (kaart.hasLayer(osmLaag)) {
+      kaart.removeLayer(osmLaag);
+      knopOsm.setAttribute("aria-pressed", "false");
+      return;
+    }
+    knopOsm.setAttribute("aria-pressed", "true");
+    if (osmStatus === "klaar") { osmLaag.addTo(kaart); return; }
+    haalOsm().then(function () {
+      if (osmStatus === "klaar") { osmLaag.addTo(kaart); }
+    });
   });
 
   /* ---------- lijst ---------- */
