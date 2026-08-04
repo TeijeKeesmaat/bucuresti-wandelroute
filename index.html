@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16386B">
+<meta name="description" content="Wandelrondje van zes kilometer door Boekarest, vanaf Calea Victoriei 25.">
+<title>Calea Victoriei 25 — rondje Boekarest</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H"
+      crossorigin="anonymous">
+<style>
+  :root {
+    --pleister: #EDEBE3;
+    --pleister-diep: #E2DFD5;
+    --inkt: #15181D;
+    --plaat: #16386B;
+    --glas: #E5A62B;
+    --mist: #6E7280;
+    --lijn: rgba(21, 24, 29, 0.14);
+
+    --sans: ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--pleister);
+    color: var(--inkt);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px 64px; }
+
+  /* ---------- hero ---------- */
+
+  .hero { padding: 24px 0 18px; }
+  .plaat-groot {
+    background: var(--plaat);
+    color: #fff;
+    padding: 20px 18px 16px;
+    outline: 1px solid rgba(255,255,255,0.55);
+    outline-offset: -6px;
+  }
+  .plaat-groot .sector {
+    font-family: var(--sans);
+    font-size: 0.66rem; letter-spacing: 0.22em; text-transform: uppercase;
+    opacity: 0.75; margin: 0 0 8px;
+  }
+  .plaat-groot h1 {
+    font-family: var(--sans); font-weight: 700;
+    font-size: clamp(1.5rem, 8vw, 2.1rem);
+    letter-spacing: -0.015em; text-transform: uppercase;
+    line-height: 1.02; margin: 0;
+  }
+  .plaat-groot .onder {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em;
+    margin: 12px 0 0; opacity: 0.85;
+  }
+  .intro { margin: 16px 0 0; }
+
+  /* ---------- kaart ---------- */
+
+  #kaart {
+    height: 66vh;
+    min-height: 380px;
+    border: 1px solid var(--lijn);
+    background: var(--pleister-diep);
+    z-index: 1;
+  }
+  .kaartblok { margin: 20px 0 0; }
+
+  .lagen { display: flex; gap: 0; margin: 0; }
+  .lagen button {
+    flex: 1 1 0;
+    font-family: var(--sans);
+    font-size: 0.74rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 11px 8px;
+    border: 1px solid var(--lijn); border-top: 0;
+    background: var(--pleister-diep);
+    color: var(--mist);
+    cursor: pointer;
+  }
+  .lagen button + button { border-left: 0; }
+  .lagen button[aria-pressed="true"] { background: var(--plaat); color: #fff; border-color: var(--plaat); }
+
+  .knoppen { display: flex; gap: 8px; margin: 14px 0 0; flex-wrap: wrap; }
+  .knop {
+    flex: 1 1 auto; text-align: center;
+    font-family: var(--sans); font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none;
+    padding: 14px 16px;
+    border: 1px solid var(--plaat); background: var(--plaat); color: #fff;
+    cursor: pointer;
+  }
+  .knop.leeg { background: transparent; color: var(--plaat); }
+  .knop:focus-visible, a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--glas); outline-offset: 2px;
+  }
+
+  /* ---------- markers ---------- */
+
+  .m-stop {
+    background: var(--plaat);
+    color: #fff;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    outline: 1px solid rgba(255,255,255,0.6); outline-offset: -3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .m-stop.warm { background: var(--glas); color: #15181D; outline-color: rgba(21,24,29,0.5); }
+  .m-tussen {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--pleister); border: 3px solid var(--glas);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .m-jij {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--glas); border: 3px solid #fff;
+    box-shadow: 0 0 0 4px rgba(229,166,43,0.35);
+  }
+
+  .leaflet-popup-content-wrapper { border-radius: 0; background: var(--pleister); color: var(--inkt); }
+  .leaflet-popup-tip { background: var(--pleister); }
+  .leaflet-popup-content { margin: 12px 14px; font-family: var(--serif); font-size: 15px; line-height: 1.5; }
+  .pop-naam {
+    font-family: var(--sans); font-weight: 700; font-size: 0.9rem;
+    letter-spacing: 0.03em; text-transform: uppercase; margin: 0;
+  }
+  .pop-meta { font-family: var(--mono); font-size: 0.66rem; color: var(--mist); margin: 5px 0 0; }
+  .pop-wat { margin: 8px 0 0; }
+  .pop-weetje { margin: 5px 0 0; color: var(--mist); }
+  .pop-link {
+    display: inline-block; margin: 9px 0 0;
+    font-family: var(--sans); font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--plaat); text-decoration: none;
+    border-bottom: 2px solid var(--glas); padding-bottom: 2px;
+  }
+
+  /* ---------- statusbalk ---------- */
+
+  .status {
+    position: sticky; top: 0; z-index: 500;
+    margin: 22px -16px 0;
+    padding: 10px 16px calc(10px + env(safe-area-inset-top, 0px));
+    background: var(--pleister);
+    border-bottom: 1px solid var(--lijn);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.02em;
+  }
+  .stip { width: 8px; height: 8px; border-radius: 50%; background: var(--mist); flex: 0 0 auto; }
+  .stip.aan { background: var(--glas); }
+  .stip.zoekt { background: var(--plaat); animation: pols 1.4s infinite; }
+  @keyframes pols { 0%,100% { opacity: 1 } 50% { opacity: 0.25 } }
+  #statusTekst { flex: 1 1 auto; color: var(--mist); }
+  .status button {
+    font-family: var(--mono); font-size: 0.72rem;
+    background: none; border: 0; border-bottom: 1px solid var(--inkt);
+    padding: 0 0 1px; color: var(--inkt); cursor: pointer;
+  }
+
+  /* ---------- lijst ---------- */
+
+  .kop {
+    font-family: var(--sans); font-size: 0.68rem;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--mist);
+    margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--lijn);
+  }
+  ol { list-style: none; margin: 0; padding: 0; }
+  .item { padding: 18px 0; border-bottom: 1px solid var(--lijn); }
+  .item.dichtbij {
+    background: rgba(229,166,43,0.13);
+    margin: 0 -16px; padding: 18px 16px; border-bottom: 0;
+    box-shadow: inset 3px 0 0 var(--glas);
+  }
+  .plaat {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    background: var(--plaat); color: #fff; padding: 9px 12px 8px;
+    outline: 1px solid rgba(255,255,255,0.5); outline-offset: -4px; max-width: 100%;
+  }
+  .item.dichtbij .plaat { background: var(--glas); color: var(--inkt); outline-color: rgba(21,24,29,0.4); }
+  .plaat .nr { font-family: var(--mono); font-size: 0.7rem; opacity: 0.8; flex: 0 0 auto; }
+  .plaat .naam {
+    font-family: var(--sans); font-weight: 700; font-size: 0.95rem;
+    letter-spacing: 0.01em; text-transform: uppercase; line-height: 1.15;
+  }
+  .meta { font-family: var(--mono); font-size: 0.7rem; color: var(--mist); margin: 10px 0 0; }
+  .meta .afstand { color: var(--inkt); font-weight: 600; }
+  .wat { margin: 10px 0 0; }
+  .weetje { margin: 6px 0 0; color: #3b4048; }
+  .weetje::before {
+    content: ""; display: inline-block; width: 14px;
+    border-top: 2px solid var(--glas); vertical-align: 0.28em; margin-right: 8px;
+  }
+  .acties { margin: 12px 0 0; display: flex; gap: 14px; flex-wrap: wrap; }
+  .link {
+    font-family: var(--sans); font-size: 0.76rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--plaat); text-decoration: none;
+    border: 0; border-bottom: 2px solid var(--glas);
+    padding-bottom: 2px; background: none; cursor: pointer;
+  }
+  .item.tussen { padding: 14px 0 14px 14px; border-left: 2px solid var(--glas); border-bottom: 1px dotted var(--lijn); }
+  .item.tussen.dichtbij { margin: 0 -16px; padding: 14px 16px; }
+  .item.tussen .titel {
+    font-family: var(--sans); font-weight: 700; font-size: 0.86rem;
+    letter-spacing: 0.04em; text-transform: uppercase; margin: 0;
+  }
+  .item.tussen .wat, .item.tussen .weetje { font-size: 0.95rem; }
+
+  footer { margin: 36px 0 0; font-family: var(--mono); font-size: 0.7rem; line-height: 1.7; color: var(--mist); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="plaat-groot">
+      <p class="sector">Rondwandeling · start en finish</p>
+      <h1>Calea Victoriei 25</h1>
+      <p class="onder">± 6 KM · ± 85 MIN LOPEN · 9 STOPS · 12 DINGEN ONDERWEG</p>
+    </div>
+    <p class="intro">Een rondje dat begint en eindigt op je eigen stoep. Eerst het oude centrum, dan west naar het Parlementspaleis, via Cismigiu terug omhoog naar het Ateneum, en langs Calea Victoriei weer naar beneden. Tik een punt op de kaart aan voor de uitleg.</p>
+  </header>
+
+  <section class="kaartblok">
+    <div id="kaart"></div>
+    <div class="lagen">
+      <button type="button" id="laagKaart" aria-pressed="true">Straatkaart</button>
+      <button type="button" id="laagSat" aria-pressed="false">Satelliet</button>
+      <button type="button" id="laagPas">Hele route in beeld</button>
+    </div>
+    <div class="knoppen">
+      <a class="knop" id="routeKnop" href="#" target="_blank" rel="noopener">Route in Google Maps</a>
+    </div>
+  </section>
+
+  <div class="status">
+    <span class="stip" id="stip"></span>
+    <span id="statusTekst">Locatie staat uit</span>
+    <button id="gpsKnop" type="button">Zet aan</button>
+  </div>
+
+  <h2 class="kop" id="lijstKop">Route in volgorde</h2>
+  <ol id="lijst"></ol>
+
+  <footer>
+    <p>Looptijden zijn schattingen zonder pauzes. Openingstijden en prijzen staan er bewust niet bij.</p>
+    <p>Kaart en luchtbeelden: OpenStreetMap-bijdragers en Esri. De wandellijn komt van de open routeplanner van OpenStreetMap; lukt dat even niet, dan trekt de pagina rechte lijnen tussen de punten.</p>
+  </footer>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH"
+        crossorigin="anonymous"></script>
+<script>
+(function () {
+  "use strict";
+
+  var START = { type: "start", naam: "Calea Victoriei 25", adres: "Startpunt", lat: 44.43433, lng: 26.09800,
+    q: "Calea Victoriei 25, 030167 Bucuresti",
+    wat: "Je eigen voordeur, en meteen de mooiste straat van de stad.",
+    weetje: "Calea Victoriei heette eerst Podul Mogosoaiei en lag vol eiken balken; de huidige naam kwam er na de overwinningsparade van 1878." };
+
+  var PUNTEN = [
+    { type: "stop", nr: 1, naam: "Pasajul Macca-Villacrosse", adres: "Calea Victoriei / Str. Eugeniu Carada",
+      min: 2, lat: 44.43311, lng: 26.09870, q: "Pasajul Macca-Villacrosse, Bucuresti",
+      wat: "Overdekte winkelpassage uit 1891 met een geel glazen dak dat alles binnen honingkleurig maakt.",
+      weetje: "De passage is Y-vormig, dus je komt er aan een andere straat weer uit dan waar je binnenging." },
+
+    { type: "tussen", naam: "Palatul CEC", adres: "Calea Victoriei 13",
+      lat: 44.43128, lng: 26.09650, q: "Palatul CEC, Calea Victoriei 13, Bucuresti",
+      wat: "Het spaarbankpaleis uit 1900 met een glazen koepel, recht tegenover het geschiedenismuseum.",
+      weetje: "Het staat op de fundering van een gesloopt klooster en is nog altijd van dezelfde bank." },
+
+    { type: "tussen", naam: "Muzeul National de Istorie", adres: "Calea Victoriei 12",
+      lat: 44.43064, lng: 26.09590, q: "Muzeul National de Istorie a Romaniei, Bucuresti",
+      wat: "Het oude Postpaleis, nu het nationaal geschiedenismuseum met zware zuilen aan de straat.",
+      weetje: "Hier ligt de gouden schat van Pietroasele, in Roemenie bekend als de klokhen met haar gouden kuikens." },
+
+    { type: "stop", nr: 2, naam: "Carturesti Carusel", adres: "Strada Lipscani 55",
+      min: 3, lat: 44.43179, lng: 26.09772, q: "Carturesti Carusel, Strada Lipscani 55, Bucuresti",
+      wat: "Boekhandel over zes spierwitte verdiepingen met een wenteltrap door het midden.",
+      weetje: "Het pand was de bank van de familie Chrissoveloni, onder het communisme een staatswinkel, daarna decennia een ruine." },
+
+    { type: "tussen", naam: "Strada Lipscani", adres: "Oude centrum",
+      lat: 44.43155, lng: 26.09920, q: "Strada Lipscani, Bucuresti",
+      wat: "De hoofdader van het oude handelscentrum, nu vooral terrassen en kroegen.",
+      weetje: "Genoemd naar de kooplui die hun waar uit Leipzig haalden, in het Roemeens Lipsca." },
+
+    { type: "tussen", naam: "Hanul cu Tei", adres: "Strada Lipscani 63",
+      lat: 44.43168, lng: 26.10035, q: "Hanul cu Tei, Bucuresti",
+      wat: "Een smalle overdekte doorgang uit 1833 met galerijen en kunsthandels aan beide kanten.",
+      weetje: "Het is de best bewaarde koopmanspassage van de stad en staat er nog vrijwel zoals hij gebouwd is." },
+
+    { type: "stop", nr: 3, naam: "Manastirea Stavropoleos", adres: "Strada Stavropoleos 4",
+      min: 3, lat: 44.43126, lng: 26.09828, q: "Manastirea Stavropoleos, Strada Stavropoleos 4, Bucuresti",
+      wat: "Klein kloosterkerkje uit 1724 met fijn steen- en houtsnijwerk en een stille binnenhof.",
+      weetje: "In die binnenhof liggen brokstukken van kerken die in de jaren tachtig zijn gesloopt, letterlijk gered puin." },
+
+    { type: "tussen", naam: "Biserica Curtea Veche", adres: "Strada Franceza 33",
+      lat: 44.43036, lng: 26.10160, q: "Biserica Curtea Veche, Bucuresti",
+      wat: "De oudste nog staande kerk van Boekarest, gebouwd rond 1559.",
+      weetje: "Vorsten van Walachije werden hier eeuwenlang gekroond, pal naast hun eigen hof." },
+
+    { type: "stop", nr: 4, naam: "Curtea Veche", adres: "Strada Franceza 25",
+      min: 5, lat: 44.43006, lng: 26.10128, q: "Curtea Veche, Strada Franceza 25, Bucuresti",
+      wat: "De opgegraven resten van het vorstelijk hof, met muurwerk, kelders en een borstbeeld.",
+      weetje: "In een oorkonde van dit hof, uit 1459, duikt de naam Boekarest voor het eerst op, ondertekend door Vlad Tepes." },
+
+    { type: "stop", nr: 5, naam: "Hanu' lui Manuc", adres: "Strada Franceza 62-64",
+      min: 2, lat: 44.42972, lng: 26.10231, q: "Hanul lui Manuc, Strada Franceza 62-64, Bucuresti",
+      wat: "De oudste bewaarde herberg van de stad, met een houten galerijenhof rondom een binnenplaats.",
+      weetje: "In dit gebouw werd in 1812 het vredesverdrag van Boekarest uitonderhandeld, tussen twee oorlogvoerende rijken." },
+
+    { type: "tussen", naam: "Piata Unirii", adres: "Kruispunt Unirii",
+      lat: 44.42700, lng: 26.10300, q: "Piata Unirii, Bucuresti",
+      wat: "Groot verkeersplein met een lange rij fonteinen die de as naar het Parlementspaleis opent.",
+      weetje: "De rivier de Dambovita loopt hier ondergronds, weggewerkt onder het plein." },
+
+    { type: "tussen", naam: "Catedrala Patriarhala", adres: "Dealul Mitropoliei",
+      lat: 44.42470, lng: 26.09830, q: "Catedrala Patriarhala, Bucuresti",
+      wat: "De patriarchale kathedraal uit 1658, boven op het enige heuveltje in de buurt.",
+      weetje: "Tot 1997 vergaderde het Roemeense parlement op dezelfde kerkheuvel, kerk en staat op een adres." },
+
+    { type: "tussen", naam: "Bulevardul Unirii", adres: "As naar het paleis",
+      lat: 44.42660, lng: 26.09400, q: "Bulevardul Unirii, Bucuresti",
+      wat: "De kaarsrechte parade-as met fonteinen die recht op het Parlementspaleis afloopt.",
+      weetje: "Hij is met opzet net iets breder gemaakt dan de Champs-Elysees, dat was het hele punt." },
+
+    { type: "stop", nr: 6, naam: "Palatul Parlamentului", adres: "Strada Izvor 2-4",
+      min: 25, lat: 44.42750, lng: 26.08735, q: "Palatul Parlamentului, Strada Izvor 2-4, Bucuresti",
+      wat: "Het paleis van Ceausescu, het zwaarste gebouw ter wereld, met ruim duizend zalen.",
+      weetje: "Voor de bouw ging een hele wijk tegen de vlakte, inclusief kerken die op rails werden verplaatst om ze te verstoppen." },
+
+    { type: "tussen", naam: "Catedrala Mantuirii Neamului", adres: "Naast het Parlementspaleis",
+      lat: 44.42780, lng: 26.08420, q: "Catedrala Mantuirii Neamului, Bucuresti",
+      wat: "De nieuwe nationale kathedraal, pal achter het paleis en nog altijd in afbouw.",
+      weetje: "Qua hoogte is het de grootste orthodoxe kerk ter wereld, bewust naast het communistische paleis gezet." },
+
+    { type: "stop", nr: 7, naam: "Gradina Cismigiu", adres: "Bulevardul Regina Elisabeta",
+      min: 22, lat: 44.43734, lng: 26.09108, q: "Gradina Cismigiu, Bucuresti",
+      wat: "Het oudste stadspark, aangelegd vanaf 1847 rond een vijver met veel schaduw en oude platanen.",
+      weetje: "De naam komt van de cismigiu, de Ottomaanse opzichter van de openbare waterfonteinen die hier woonde." },
+
+    { type: "tussen", naam: "Biserica Cretulescu", adres: "Calea Victoriei 45",
+      lat: 44.43862, lng: 26.09585, q: "Biserica Cretulescu, Bucuresti",
+      wat: "Baksteenrode kerk uit 1722 die zich tussen de grote gebouwen aan het Revolutieplein wringt.",
+      weetje: "Hij stond in de jaren tachtig op de sloopnota en is op het laatste moment blijven staan." },
+
+    { type: "tussen", naam: "Muzeul National de Arta", adres: "Calea Victoriei 49-53",
+      lat: 44.43925, lng: 26.09565, q: "Muzeul National de Arta al Romaniei, Bucuresti",
+      wat: "Het voormalige Koninklijk Paleis, nu het nationale kunstmuseum aan het Revolutieplein.",
+      weetje: "Op de gevels rond dit plein zitten nog kogelgaten uit december 1989, gewoon op ooghoogte." },
+
+    { type: "stop", nr: 8, naam: "Ateneul Roman", adres: "Strada Benjamin Franklin 1-3",
+      min: 12, lat: 44.44133, lng: 26.09732, q: "Ateneul Roman, Strada Benjamin Franklin 1-3, Bucuresti",
+      wat: "De ronde concertzaal uit 1888 op zuilen, het mooiste gebouw van de wandeling.",
+      weetje: "Hij is deels betaald met een publieke inzameling onder de leus geef een leu voor het Ateneum." },
+
+    { type: "stop", nr: 9, naam: "Piata Revolutiei", adres: "Calea Victoriei",
+      min: 2, lat: 44.43917, lng: 26.09769, q: "Piata Revolutiei, Bucuresti",
+      wat: "Het plein waar Ceausescu op 21 december 1989 zijn laatste toespraak hield en van het dak vluchtte.",
+      weetje: "Het spitse monument midden op het plein wordt door Boekaresters consequent de aardappel op een stokje genoemd." },
+
+    { type: "tussen", naam: "Casa Capsa", adres: "Calea Victoriei 36",
+      lat: 44.43700, lng: 26.09610, q: "Casa Capsa, Calea Victoriei 36, Bucuresti",
+      wat: "Cafe, banketbakkerij en hotel uit 1852, op de terugweg naar je startpunt.",
+      weetje: "Een eeuw lang gold hier de regel dat nieuws pas nieuws was als het bij Capsa besproken was." }
+  ];
+
+  var ALLES = [START].concat(PUNTEN);
+  var enc = encodeURIComponent;
+
+  /* ---------- Google Maps links ---------- */
+
+  var stops = PUNTEN.filter(function (p) { return p.type === "stop"; });
+  var routeUrl = "https://www.google.com/maps/dir/?api=1"
+    + "&origin=" + enc(START.q)
+    + "&destination=" + enc(START.q)
+    + "&waypoints=" + stops.map(function (p) { return enc(p.q); }).join("%7C")
+    + "&travelmode=walking";
+  document.getElementById("routeKnop").href = routeUrl;
+
+  function puntUrl(p) {
+    return "https://www.google.com/maps/search/?api=1&query=" + enc(p.q);
+  }
+
+  /* ---------- kaart ---------- */
+
+  var kaart = L.map("kaart", { scrollWheelZoom: false, zoomControl: true });
+
+  var straat = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-bijdragers'
+  });
+  var satelliet = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: "Luchtbeelden &copy; Esri, Maxar, Earthstar Geographics"
+  });
+  var labels = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19, attribution: "&copy; Esri"
+  });
+
+  straat.addTo(kaart);
+
+  var knopKaart = document.getElementById("laagKaart");
+  var knopSat = document.getElementById("laagSat");
+
+  function zetLaag(sat) {
+    if (sat) {
+      kaart.removeLayer(straat);
+      satelliet.addTo(kaart);
+      labels.addTo(kaart);
+    } else {
+      kaart.removeLayer(satelliet);
+      kaart.removeLayer(labels);
+      straat.addTo(kaart);
+    }
+    knopKaart.setAttribute("aria-pressed", String(!sat));
+    knopSat.setAttribute("aria-pressed", String(sat));
+  }
+  knopKaart.addEventListener("click", function () { zetLaag(false); });
+  knopSat.addEventListener("click", function () { zetLaag(true); });
+
+  /* markers */
+
+  var markers = {};
+
+  ALLES.forEach(function (p, i) {
+    var icoon = p.type === "tussen"
+      ? L.divIcon({ className: "", html: '<div class="m-tussen"></div>', iconSize: [13, 13], iconAnchor: [6, 6] })
+      : L.divIcon({
+          className: "",
+          html: '<div class="m-stop' + (p.type === "start" ? " warm" : "") + '">' + (p.nr || "S") + "</div>",
+          iconSize: [26, 26], iconAnchor: [13, 13]
+        });
+
+    var m = L.marker([p.lat, p.lng], { icon: icoon, title: p.naam }).addTo(kaart);
+
+    var meta = p.type === "stop"
+      ? "STOP " + p.nr + " · " + p.adres + " · " + p.min + " min vanaf vorige stop"
+      : (p.type === "start" ? "START EN FINISH" : "ONDERWEG · " + p.adres);
+
+    var html = document.createElement("div");
+    var h = document.createElement("p"); h.className = "pop-naam"; h.textContent = p.naam; html.appendChild(h);
+    var mt = document.createElement("p"); mt.className = "pop-meta"; mt.textContent = meta; html.appendChild(mt);
+    var w = document.createElement("p"); w.className = "pop-wat"; w.textContent = p.wat; html.appendChild(w);
+    var we = document.createElement("p"); we.className = "pop-weetje"; we.textContent = p.weetje; html.appendChild(we);
+    var a = document.createElement("a");
+    a.className = "pop-link"; a.href = puntUrl(p); a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "Open in Maps"; html.appendChild(a);
+
+    m.bindPopup(html, { maxWidth: 280 });
+    markers[i] = m;
+    p.marker = m;
+  });
+
+  /* route: eerst rechte lijnen, daarna de echte wandellijn als de router antwoordt */
+
+  var volgorde = [START].concat(PUNTEN).concat([START]);
+  var lijn = L.polyline(volgorde.map(function (p) { return [p.lat, p.lng]; }), {
+    color: "#16386B", weight: 4, opacity: 0.75, dashArray: "6 6"
+  }).addTo(kaart);
+
+  kaart.fitBounds(lijn.getBounds(), { padding: [28, 28] });
+
+  var coords = volgorde.map(function (p) { return p.lng.toFixed(5) + "," + p.lat.toFixed(5); }).join(";");
+  fetch("https://routing.openstreetmap.de/routed-foot/route/v1/foot/" + coords + "?overview=full&geometries=geojson")
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function (d) {
+      var lijnen = d && d.routes && d.routes[0] && d.routes[0].geometry;
+      if (!lijnen) { return; }
+      var punten = lijnen.coordinates.map(function (c) { return [c[1], c[0]]; });
+      lijn.setLatLngs(punten);
+      lijn.setStyle({ dashArray: null, opacity: 0.85 });
+      kaart.fitBounds(lijn.getBounds(), { padding: [28, 28] });
+    })
+    .catch(function () { /* rechte lijnen blijven staan */ });
+
+  document.getElementById("laagPas").addEventListener("click", function () {
+    kaart.fitBounds(lijn.getBounds(), { padding: [28, 28] });
+  });
+
+  /* ---------- lijst ---------- */
+
+  var lijst = document.getElementById("lijst");
+  var knopen = [];
+
+  PUNTEN.forEach(function (p, i) {
+    var li = document.createElement("li");
+    li.className = "item " + (p.type === "stop" ? "stop" : "tussen");
+
+    var kop;
+    if (p.type === "stop") {
+      kop = document.createElement("div");
+      kop.className = "plaat";
+      kop.innerHTML = '<span class="nr"></span><span class="naam"></span>';
+      kop.querySelector(".nr").textContent = p.nr;
+      kop.querySelector(".naam").textContent = p.naam;
+    } else {
+      kop = document.createElement("p");
+      kop.className = "titel";
+      kop.textContent = p.naam;
+    }
+    li.appendChild(kop);
+
+    var meta = document.createElement("p");
+    meta.className = "meta";
+    meta.innerHTML = '<span class="basis"></span><span class="afstand"></span>';
+    meta.querySelector(".basis").textContent = p.type === "stop"
+      ? p.adres + " · " + p.min + " MIN VANAF VORIGE STOP"
+      : "ONDERWEG · " + p.adres;
+    li.appendChild(meta);
+
+    var wat = document.createElement("p"); wat.className = "wat"; wat.textContent = p.wat; li.appendChild(wat);
+    var weetje = document.createElement("p"); weetje.className = "weetje"; weetje.textContent = p.weetje; li.appendChild(weetje);
+
+    var acties = document.createElement("div");
+    acties.className = "acties";
+
+    var a = document.createElement("a");
+    a.className = "link"; a.href = puntUrl(p); a.target = "_blank"; a.rel = "noopener";
+    a.textContent = "Open in Maps";
+    acties.appendChild(a);
+
+    var b = document.createElement("button");
+    b.className = "link"; b.type = "button"; b.textContent = "Toon op kaart";
+    b.addEventListener("click", function () {
+      kaart.setView([p.lat, p.lng], 17, { animate: true });
+      p.marker.openPopup();
+      document.querySelector(".kaartblok").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    acties.appendChild(b);
+
+    li.appendChild(acties);
+    lijst.appendChild(li);
+
+    knopen.push({ data: p, el: li, afstandEl: meta.querySelector(".afstand"), volgorde: i });
+  });
+
+  /* ---------- locatie ---------- */
+
+  var stip = document.getElementById("stip");
+  var statusTekst = document.getElementById("statusTekst");
+  var gpsKnop = document.getElementById("gpsKnop");
+  var lijstKop = document.getElementById("lijstKop");
+  var watchId = null;
+  var jijMarker = null;
+
+  function afstand(a, b, c, d) {
+    var R = 6371000, r = Math.PI / 180;
+    var dLat = (c - a) * r, dLng = (d - b) * r;
+    var x = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+      + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)));
+  }
+  function toonAfstand(m) {
+    return m < 1000 ? m + " M" : (m / 1000).toFixed(1).replace(".", ",") + " KM";
+  }
+
+  function herschik(lat, lng) {
+    if (!jijMarker) {
+      jijMarker = L.marker([lat, lng], {
+        icon: L.divIcon({ className: "", html: '<div class="m-jij"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+        zIndexOffset: 1000
+      }).addTo(kaart);
+    } else {
+      jijMarker.setLatLng([lat, lng]);
+    }
+
+    knopen.forEach(function (k) {
+      k.m = afstand(lat, lng, k.data.lat, k.data.lng);
+      k.afstandEl.textContent = " · " + toonAfstand(k.m) + " HIERVANDAAN";
+    });
+
+    var gesorteerd = knopen.slice().sort(function (x, y) { return x.m - y.m; });
+
+    gesorteerd.forEach(function (k) {
+      var dichtbij = k.m <= 200;
+      k.el.classList.toggle("dichtbij", dichtbij);
+      var vlak = k.data.marker.getElement() && k.data.marker.getElement().querySelector(".m-stop");
+      if (vlak) { vlak.classList.toggle("warm", dichtbij); }
+      lijst.appendChild(k.el);
+    });
+
+    lijstKop.textContent = "Dichtstbij eerst";
+    var eerste = gesorteerd[0];
+    statusTekst.textContent = eerste.m <= 200
+      ? "Je staat bij " + eerste.data.naam
+      : toonAfstand(eerste.m) + " tot " + eerste.data.naam;
+    stip.className = "stip aan";
+  }
+
+  function herstelVolgorde() {
+    knopen.slice().sort(function (x, y) { return x.volgorde - y.volgorde; })
+      .forEach(function (k) {
+        k.el.classList.remove("dichtbij");
+        var vlak = k.data.marker.getElement() && k.data.marker.getElement().querySelector(".m-stop");
+        if (vlak) { vlak.classList.remove("warm"); }
+        k.afstandEl.textContent = "";
+        lijst.appendChild(k.el);
+      });
+    lijstKop.textContent = "Route in volgorde";
+    if (jijMarker) { kaart.removeLayer(jijMarker); jijMarker = null; }
+  }
+
+  function stopGps() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    herstelVolgorde();
+    stip.className = "stip";
+    statusTekst.textContent = "Locatie staat uit";
+    gpsKnop.textContent = "Zet aan";
+  }
+
+  function startGps() {
+    if (!navigator.geolocation) {
+      statusTekst.textContent = "Deze browser geeft geen locatie door";
+      return;
+    }
+    stip.className = "stip zoekt";
+    statusTekst.textContent = "Locatie zoeken";
+    gpsKnop.textContent = "Zet uit";
+    watchId = navigator.geolocation.watchPosition(
+      function (pos) { herschik(pos.coords.latitude, pos.coords.longitude); },
+      function () {
+        stip.className = "stip";
+        statusTekst.textContent = "Geen locatie, gebruik de routevolgorde";
+        gpsKnop.textContent = "Opnieuw";
+        watchId = null;
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+    );
+  }
+
+  gpsKnop.addEventListener("click", function () {
+    if (watchId === null) { startGps(); } else { stopGps(); }
+  });
+})();
+</script>
+</body>
+</html>
